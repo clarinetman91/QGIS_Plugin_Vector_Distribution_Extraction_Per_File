@@ -1,0 +1,39 @@
+# This file contains metadata for your plugin. Since 
+# version 2.0 of QGIS this is the proper way to supply 
+# information about a plugin. The old method of 
+# embedding metadata in __init__.py will 
+# is no longer supported since version 2.0.
+
+# This file should be included when you package your plugin.# Mandatory items:
+
+[general]
+name=Vector Distribution Extraction Per File
+qgisMinimumVersion=2.0
+description=This plugin extract the distribution of one or several vector layer in each feature of an area vector layer
+version=0.1
+author=Kevin Bourrand
+email=k.bourrand@hotmail.fr
+
+about=This plugin offers a user friendly alternative to repetitive intersections process and fastidious jointure to gather the covering informations on a single table. The possibility to customize the name of the result fields and to check the crs compatibility shall spare significant data processing managing time. 
+
+tracker=github.com
+repository=github.com
+# End of mandatory metadata
+
+# Recommended items:
+
+# Uncomment the following line and add your changelog:
+# changelog=
+
+# Tags are comma separated with spaces allowed
+tags=vector extraction intersection batch distribution
+
+homepage=github.com
+category=Vector
+icon=icon.png
+# experimental flag
+experimental=True
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
+

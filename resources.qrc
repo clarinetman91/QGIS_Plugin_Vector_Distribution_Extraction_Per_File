@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/VectorDistributionExtractionPerFile" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>

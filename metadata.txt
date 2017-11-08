@@ -14,7 +14,7 @@ version=0.1
 author=Kevin Bourrand
 email=k.bourrand@hotmail.fr
 
-about=This plugin offers a user friendly alternative to repetitive intersections process and fastidious jointure to gather the covering informations on a single table. The possibility to customize the name of the result fields and to check the crs compatibility shall spare significant data processing managing time. 
+about=This plugin offers a user-friendly alternative to repetitive intersection processes and table joins to display coverage information on a single table. The ability to customize the name of the result fields and to check the crs compatibility could spare significant processing time. 
 
 tracker=https://github.com/clarinetman91/QGIS_Plugin_Vector_Distribution_Extraction_Per_File/issues
 repository=https://github.com/clarinetman91/QGIS_Plugin_Vector_Distribution_Extraction_Per_File

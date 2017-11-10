@@ -263,12 +263,22 @@ class VectorDistributionExtractionPerFile:
             default_input_path = QSettings().value('Processing/LastInputPath')
         # Open a dialogue box in the default_input_path to allow the selection of the desired area vector path
         file_name = QFileDialog.getOpenFileName(self.dlg, "Select Input Area Vector File",default_input_path, '*.shp') # getOpenFileName method allow only one entry
-        # Add the selected area vector path to the combo box and to the area_lyr_list if the dialogue doesn't return an empty string
+        # Instantiate the file returned by the dialogue as a vector layer if the dialogue doesn't return an empty string
         if file_name != "":
-            area_lyr_list.append(QgsVectorLayer(file_name, "%s" %(os.path.basename(file_name)), "ogr"))
-            self.dlg.comboBox.addItem(file_name)
-            # Set the current combo box index to the selected area vector file
-            self.dlg.comboBox.setCurrentIndex(self.dlg.comboBox.count()-1)
+            new_area_layer = QgsVectorLayer(file_name, "%s" %(os.path.basename(file_name)), "ogr")
+            # Add the selected area vector path to the combo box and to the area_lyr_list if the vector layer is valid and the geometry type is polygon.
+            if new_area_layer.isValid() is True:
+                if new_area_layer.geometryType() == QGis.Polygon:
+                    area_lyr_list.append(QgsVectorLayer(file_name, "%s" %(os.path.basename(file_name)), "ogr"))
+                    self.dlg.comboBox.addItem(file_name)
+                    # Set the current combo box index to the selected area vector file
+                    self.dlg.comboBox.setCurrentIndex(self.dlg.comboBox.count()-1)
+                # Show a warning messagebar if the layer geometry isn't polygon
+                else:
+                    self.iface.messageBar().pushMessage("Warning", "The selected area vector file doesn't has polygon geometry. Therefore it hasn't been added into the area vector list", level=QgsMessageBar.WARNING, duration = 5)
+            # Show a warning messagebar if the layer isn't valid
+            else:
+                self.iface.messageBar().pushMessage("Warning", "The selected area vector file couldn't be instantiated as a qgis vector layer. Therefore it hadn't been added into the area vector list", level=QgsMessageBar.WARNING, duration = 5)
             # Set the 'Processing/LastInputPath' to the selected area vector path 
             QSettings().setValue('Processing/LastInputPath',os.path.dirname(file_name))
         
@@ -353,20 +363,31 @@ class VectorDistributionExtractionPerFile:
             default_input_path = QSettings().value('Processing/LastInputPath')
         # Open a dialogue box in the default_input_path to allow the selection of the single or multiple areas vector path
         file_name_list = QFileDialog.getOpenFileNames(self.dlg, "Select Input Distribution Vector File",default_input_path, '*.shp') # getOpenFileNames method allow multiple entries
+        # Set the 'Processing/LastInputPath' to the directory name of the first member of the filtered_layer_list if the list contains at least 1 item that is not en empty string
+        if len(file_name_list)>0:
+            if file_name_list[0] != "":
+                QSettings().setValue('Processing/LastInputPath',os.path.dirname(file_name_list[0]))
         # Instantiate a list that will contain the filenames to be added to the "Select distribution vector files/layers" table
         filtered_layer_list = []
-        # Instantiate a list that will contain the filenames that has been refused because of the geometry type 
-        refused_file_name_list = []
+        # Instantiate two lists that will contain the filenames that has been refused because of the geometry type and unvalidity 
+        unvalid_layer_list = []
+        wrong_geometry_layer_list = []
         # Iterate through the file_name_list
         for file_name in file_name_list:
             # Instantiate the current file_name as a QgsVectorLayer
             layer = QgsVectorLayer(file_name, "%s"% os.path.basename(file_name), "ogr")
-            # Add the layer to the filtered_layer_list if it's geometry is made of polygons
-            if layer.geometryType() == QGis.Polygon: 
-                filtered_layer_list.append(layer)
-            # Otherwise, add it to the refused_file_name_list
+            # Add the layer to the filtered_layer_list if it is valid and has polygon geometry
+            print layer.isValid()
+            if layer.isValid() is True:
+                if layer.geometryType() == QGis.Polygon:
+                    filtered_layer_list.append(layer)
+                # if the geometry isn't polygon, add the layer to the wrong_geometry_layer_list
+                else:
+                    wrong_geometry_layer_list.append(layer.source())
+            # if the layer is unvalid, add it to the unvalid_layer_list
             else:
-                refused_file_name_list.append(layer.source())
+                print "toto"
+                unvalid_layer_list.append(layer.source())
         # Iterate through the filtered_layer_list
         for layer in filtered_layer_list:
             # Add the current layer to the widget and to the left_lyr_list
@@ -375,14 +396,11 @@ class VectorDistributionExtractionPerFile:
             self.dlg.listWidget.setCurrentRow(self.dlg.listWidget.count()-1)
             # Append the current layer to the left_lyr_list
             left_lyr_list.append(layer)
-        # Set the 'Processing/LastInputPath' to the directory name of the first member of the filtered_layer_list if the list contains at least 1 item that is not en empty string
-        if len(filtered_layer_list)>0:
-            if filtered_layer_list[0] != "":
-                QSettings().setValue('Processing/LastInputPath',os.path.dirname(file_name))
-        # Show a message bar containing the name of the refused files if refused_file_name_list contains at least one member
-        if len(refused_file_name_list)>0:
-            self.iface.messageBar().pushMessage("Warning", "The following shapefiles weren't polygon and therefore hadn't been added: %s" % refused_file_name_list, level=QgsMessageBar.WARNING)
-
+        # Show a message bar containing the name of the unvalid layers sources if unvalid_layer_list and contains at least one member
+        if len(unvalid_layer_list)>0:
+            self.iface.messageBar().pushMessage("Warning", "The following distribution files couldn't be instantiated as a qgis vector layer. Therefore it hadn't been added into the area vector list: %s" % unvalid_layer_list, level=QgsMessageBar.WARNING, duration = 5)
+        if len(wrong_geometry_layer_list)>0:
+            self.iface.messageBar().pushMessage("Warning", "The following distribution layers doesn't have polygon geometry. Therefore they haven't been added to the distribution layer list: %s" % wrong_geometry_layer_list, level=QgsMessageBar.WARNING, duration = 5)
     def remove_line(self):
         """This function removes the selected lines from the "selected distribution vector files/layers" """
         # Instantiate a list that will contain all the row indexes to be deleted from the table
